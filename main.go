@@ -26,6 +26,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	record := resolver.DecodeResponse(buf[:n])
-	fmt.Printf("Resolved IP: %v\n", record.IPString())
+	// 5. Pass the valid bytes to your decoder
+	msg := resolver.DecodeResponse(buf[:n])
+	fmt.Printf("Resolved IP: %v\n", msg.Answer.IPString())
 }
