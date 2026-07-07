@@ -3,11 +3,11 @@ package resolver
 import "fmt"
 
 type DNSMessage struct {
-	H          Header
-	Q          Question
-	Answer     Record
-	Authority  Record
-	Additional Record
+	H           Header
+	Questions   []Question
+	Answers     []Record
+	Authorities []Record
+	Additionals []Record
 }
 
 //     The Header Section

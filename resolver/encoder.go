@@ -61,7 +61,9 @@ func (h *Header) EncodeHeader() []byte {
 func BuildQuery(msg DNSMessage) []byte {
 	res := make([]byte, 0)
 	res = append(res, msg.H.EncodeHeader()...)
-	res = append(res, msg.Q.EncodeQuestion()...)
+	for _, q := range msg.Questions {
+		res = append(res, q.EncodeQuestion()...)
+	}
 	return res
 }
 
@@ -71,10 +73,12 @@ func NewSimpleQuery(id uint16, domain string) []byte {
 			ID:      id,
 			QDCount: 1,
 		},
-		Q: Question{
-			Name:  EncodeDomainName(domain),
-			Type:  1, // Type A
-			Class: 1, // Class IN
+		Questions: []Question{
+			{
+				Name:  EncodeDomainName(domain),
+				Type:  1, // Type A
+				Class: 1, // Class IN
+			},
 		},
 	}
 

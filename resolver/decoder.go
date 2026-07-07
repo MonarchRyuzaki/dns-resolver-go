@@ -48,10 +48,30 @@ func DecodeResponse(data []byte) DNSMessage {
 	msg.H = DecodeHeader(data[:12])
 
 	offset := 12
-	msg.Q, offset = DecodeQuestion(data, offset)
+	
+	for i := 0; i < int(msg.H.QDCount); i++ {
+		var q Question
+		q, offset = DecodeQuestion(data, offset)
+		msg.Questions = append(msg.Questions, q)
+	}
 
-	msg.Answer, offset = DecodeRecord(data, offset)
-	var _ = offset
+	for i := 0; i < int(msg.H.ANCount); i++ {
+		var ans Record
+		ans, offset = DecodeRecord(data, offset)
+		msg.Answers = append(msg.Answers, ans)
+	}
+
+	for i := 0; i < int(msg.H.NSCount); i++ {
+		var auth Record
+		auth, offset = DecodeRecord(data, offset)
+		msg.Authorities = append(msg.Authorities, auth)
+	}
+
+	for i := 0; i < int(msg.H.ARCount); i++ {
+		var add Record
+		add, offset = DecodeRecord(data, offset)
+		msg.Additionals = append(msg.Additionals, add)
+	}
 
 	return msg
 }

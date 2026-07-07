@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -9,8 +10,11 @@ import (
 )
 
 func main() {
-	queryBytes := resolver.NewSimpleQuery(22, "dns.google.com")
-	// fmt.Printf("Bytes to send: %x\n", queryBytes)
+	domain := flag.String("domain", "dns.google.com", "The domain to resolve")
+	flag.Parse()
+
+	queryBytes := resolver.NewSimpleQuery(22, *domain)
+	fmt.Printf("Resolving %s...\n", *domain)
 
 	conn, err := net.Dial("udp", "8.8.8.8:53")
 	if err != nil {
@@ -26,7 +30,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	// 5. Pass the valid bytes to your decoder
 	msg := resolver.DecodeResponse(buf[:n])
-	fmt.Printf("Resolved IP: %v\n", msg.Answer.IPString())
+
+	for _, ans := range msg.Answers {
+		if ans.Type == 1 {
+			fmt.Printf("Resolved IP: %v\n", ans.IPString())
+		}
+	}
 }
