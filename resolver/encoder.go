@@ -82,8 +82,7 @@ func NewSimpleQuery(id uint16, domain string) []byte {
 		},
 	}
 
-	// QR=0, OPCODE=0, AA=0, TC=0, RD=1, RA=0, Z=0, RCODE=0
-	msg.H.SetFlags(0, 0, 0, 0, 1, 0, 0, 0)
+	msg.H.SetFlags(0, 0, 0, 0, 0, 0, 0, 0)
 
 	return BuildQuery(msg)
 }

@@ -41,14 +41,46 @@ func resolve(domain string, serverIP string) resolver.DNSMessage {
 
 func main() {
 	domain := parseFlags()
-	fmt.Printf("Resolving %s...\n", domain)
+	fmt.Printf("Resolving %s iteratively...\n", domain)
 
-	msg := resolve(domain, "8.8.8.8")
+	serverIP := "198.41.0.4"
 
-	for _, ans := range msg.Answers {
-		// Only print A Records (Type 1)
-		if ans.Type == 1 {
-			fmt.Printf("Resolved IP: %v\n", ans.IPString())
+	for {
+		fmt.Printf("Querying %s for %s\n", serverIP, domain)
+		msg := resolve(domain, serverIP)
+
+		foundAnswer := false
+		for _, ans := range msg.Answers {
+			if ans.Type == 1 {
+				fmt.Printf("Resolved IP: %v\n", ans.IPString())
+				foundAnswer = true
+			}
 		}
+
+		if foundAnswer {
+			return
+		}
+
+		foundGlue := false
+		for _, add := range msg.Additionals {
+			if add.Type == 1 {
+				serverIP = add.IPString()
+				foundGlue = true
+				break
+			}
+		}
+
+		if foundGlue {
+			continue
+		}
+
+		if len(msg.Authorities) > 0 {
+			// This means they gave us the name of the next server, but didn't give us the IP in Additionals.
+			// A true production resolver would now recursively call `resolve(authorityName, "198.41.0.4")`
+			// to find the IP of the nameserver, and then continue.
+			log.Fatalf("Received NS referral without a glue IP! Full nameserver resolution not yet implemented.")
+		}
+
+		log.Fatalf("Resolution failed: No answers, no glue records, and no authorities returned.")
 	}
 }
