@@ -106,3 +106,20 @@ type Question struct {
 	Type  uint16
 	Class uint16
 }
+
+// Record represents the Answer section of the DNS packet
+type Record struct {
+	Name     []byte
+	Type     uint16
+	Class    uint16
+	TTL      uint32
+	DataLen  uint16
+	Data     []byte
+}
+
+// IPString is a helper to format the raw bytes into a human-readable IP
+func (r *Record) IPString() string {
+	// TODO: If this is an A record (Type 1), the Data field holds exactly 4 bytes.
+	// Convert those 4 bytes into a string like "8.8.8.8"
+	return ""
+}
