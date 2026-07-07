@@ -9,15 +9,21 @@ import (
 	"github.com/MonarchRyuzaki/dns-resolver-go/resolver"
 )
 
-func parseFlags() string {
+type Options struct {
+	Domain    string
+	Recursive bool
+}
+
+func parseFlags() Options {
 	domain := flag.String("domain", "dns.google.com", "The domain to resolve")
+	recursive := flag.Bool("recursive", false, "Use recursive resolution (RD=1) via Google DNS")
 	flag.Parse()
-	return *domain
+	return Options{Domain: *domain, Recursive: *recursive}
 }
 
 // resolve queries a specific DNS server for the given domain and returns the parsed DNSMessage
-func resolve(domain string, serverIP string) resolver.DNSMessage {
-	queryBytes := resolver.NewSimpleQuery(22, domain)
+func resolve(domain string, serverIP string, recursive bool) resolver.DNSMessage {
+	queryBytes := resolver.NewSimpleQuery(22, domain, recursive)
 
 	conn, err := net.Dial("udp", serverIP+":53")
 	if err != nil {
@@ -40,14 +46,19 @@ func resolve(domain string, serverIP string) resolver.DNSMessage {
 }
 
 func main() {
-	domain := parseFlags()
-	fmt.Printf("Resolving %s iteratively...\n", domain)
+	opts := parseFlags()
 
 	serverIP := "198.41.0.4"
+	if opts.Recursive {
+		fmt.Printf("Resolving %s recursively...\n", opts.Domain)
+		serverIP = "8.8.8.8"
+	} else {
+		fmt.Printf("Resolving %s iteratively...\n", opts.Domain)
+	}
 
 	for {
-		fmt.Printf("Querying %s for %s\n", serverIP, domain)
-		msg := resolve(domain, serverIP)
+		fmt.Printf("Querying %s for %s\n", serverIP, opts.Domain)
+		msg := resolve(opts.Domain, serverIP, opts.Recursive)
 
 		foundAnswer := false
 		for _, ans := range msg.Answers {

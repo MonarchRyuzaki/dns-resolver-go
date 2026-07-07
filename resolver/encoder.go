@@ -67,7 +67,7 @@ func BuildQuery(msg DNSMessage) []byte {
 	return res
 }
 
-func NewSimpleQuery(id uint16, domain string) []byte {
+func NewSimpleQuery(id uint16, domain string, recursive bool) []byte {
 	msg := DNSMessage{
 		H: Header{
 			ID:      id,
@@ -82,7 +82,13 @@ func NewSimpleQuery(id uint16, domain string) []byte {
 		},
 	}
 
-	msg.H.SetFlags(0, 0, 0, 0, 0, 0, 0, 0)
+	rd := uint16(0)
+	if recursive {
+		rd = 1
+	}
+
+	// QR=0, OPCODE=0, AA=0, TC=0, RD=rd, RA=0, Z=0, RCODE=0
+	msg.H.SetFlags(0, 0, 0, 0, rd, 0, 0, 0)
 
 	return BuildQuery(msg)
 }
