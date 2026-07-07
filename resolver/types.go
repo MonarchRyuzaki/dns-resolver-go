@@ -1,5 +1,7 @@
 package resolver
 
+import "fmt"
+
 type DNSMessage struct {
 	H          Header
 	Q          Question
@@ -8,7 +10,7 @@ type DNSMessage struct {
 	Additional Record
 }
 
-//     HEADER SECTION
+//     The Header Section
 //
 //                                     1  1  1  1  1  1
 //       0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
@@ -59,6 +61,7 @@ type Question struct {
 	Type  uint16
 	Class uint16
 }
+
 //  RECORD SECTION
 //                                 1  1  1  1  1  1
 //   0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
@@ -93,7 +96,8 @@ type Record struct {
 
 // IPString is a helper to format the raw bytes into a human-readable IP
 func (r *Record) IPString() string {
-	// TODO: If this is an A record (Type 1), the Data field holds exactly 4 bytes.
-	// Convert those 4 bytes into a string like "8.8.8.8"
+	if r.Type == 1 && r.Class == 1 {
+		return fmt.Sprintf("%d.%d.%d.%d", r.Data[0], r.Data[1], r.Data[2], r.Data[3])
+	}
 	return ""
 }

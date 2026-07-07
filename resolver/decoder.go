@@ -25,6 +25,22 @@ func DecodeQuestion(data []byte, offset int) (Question, int) {
 	return q, newOffset + 4
 }
 
+func DecodeRecord(data []byte, offset int) (Record, int) {
+	name, newOffset := DecodeDomainName(data, offset)
+
+	ans := Record{
+		Name:    name,
+		Type:    binary.BigEndian.Uint16(data[newOffset : newOffset+2]),
+		Class:   binary.BigEndian.Uint16(data[newOffset+2 : newOffset+4]),
+		TTL:     binary.BigEndian.Uint32(data[newOffset+4 : newOffset+8]),
+		DataLen: binary.BigEndian.Uint16(data[newOffset+8 : newOffset+10]),
+	}
+
+	ans.Data = data[newOffset+10 : newOffset+10+int(ans.DataLen)]
+
+	return ans, newOffset + 10 + int(ans.DataLen)
+}
+
 // DecodeResponse takes the raw UDP bytes and parses them into a full DNSMessage.
 func DecodeResponse(data []byte) DNSMessage {
 	msg := DNSMessage{}
@@ -34,17 +50,8 @@ func DecodeResponse(data []byte) DNSMessage {
 	offset := 12
 	msg.Q, offset = DecodeQuestion(data, offset)
 
-	// 3. Now 'offset' is pointing directly at the Answer section.
-	// Parse the Record Name (Watch out for DNS Compression pointers!)
-	// TODO: decode name, increment offset
-
-	// Parse Type, Class, TTL, and DataLen (10 bytes total)
-	// TODO: Read uint16 Type, uint16 Class, uint32 TTL, uint16 DataLen
-
-	// Parse Data
-	// TODO: Read the next 'DataLen' bytes as the actual IP address bytes
-
-	// TODO: assign the parsed Record to msg.Answer
+	msg.Answer, offset = DecodeRecord(data, offset)
+	var _ = offset
 
 	return msg
 }
